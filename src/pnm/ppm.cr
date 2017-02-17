@@ -101,6 +101,19 @@ module PNM
 			@data
 		end
 
+		def maxval=(new_maxval)
+			if new_maxval < 255
+				0.upto(@data.size-1) do |i|
+					@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
+				end
+			else
+				0.upto(@data.size-1) do |i|
+					@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u16
+				end
+			end
+			@maxval = new_maxval
+		end
+
 		def write(filename)
 			result = Array(UInt8 | UInt16).new
 			if @maxval > 255 # if maxval > 255, each color is encoded on 2 bytes
@@ -113,23 +126,27 @@ module PNM
 			end
 
 			File.open(filename, "wb") do |file|
+				# magic number (P6 for PPM)
 				file.write_byte('P'.ord.to_u8)
 				file.write_byte('6'.ord.to_u8)
 				file.write_byte(0x0a.to_u8)
+				# width
 				width.to_s.each_char do |char|
 					file.write_byte(char.ord.to_u8)
 				end
 				file.write_byte(0x0a.to_u8)
+				# height
 				height.to_s.each_char do |char|
 					file.write_byte(char.ord.to_u8)
 				end
 				file.write_byte(0x0a.to_u8)
+				# maximum value
 				maxval.to_s.each_char do |char|
 					file.write_byte(char.ord.to_u8)
 				end
 				file.write_byte(0x0a.to_u8)
 
-
+				# picture data
 				result.each do |byte|
 					file.write_byte(byte.to_u8)
 				end
