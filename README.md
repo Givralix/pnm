@@ -19,7 +19,13 @@ dependencies:
 require "pnm"
 ```
 
-TODO: Write usage instructions here
+Return the file's data type:
+
+```crystal
+data = File.read(filename).bytes
+PNM.datatype?(data)
+```
+
 
 ## Development
 
