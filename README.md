@@ -1,6 +1,6 @@
 # pnm
 
-This is a basic Crystal library to parse PPM, PGM, PBM and PAM files, to make handling them easier.
+This is a basic Crystal library to parse PPM, PGM and PBM files, to make handling them easier.
 It's still in development.
 
 ## Installation
@@ -26,6 +26,23 @@ data = File.read(filename).bytes
 PNM.datatype?(data)
 ```
 
+Create a PPM object from an existing file:
+
+```crystal
+picture = PNM::PPM.new(data)
+```
+
+Create a PPM object from scratch:
+
+```crystal
+picture = PNM::PPM.new(width, height, maxval, data)
+```
+
+Write the picture to a file:
+
+```crystal
+picture.write(filename)
+```
 
 ## Development
 

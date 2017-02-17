@@ -101,28 +101,39 @@ module PNM
 			@data
 		end
 
-		def +(other : self)
-			if other.data.size <= @data.size
-				size = other.data.size
-			else
-				size = @data.size
-			end
-			width = @width
-			if @height < other.height 
-				height = @height
-			else
-				height = other.height
-			end
-			maxval = @maxval
-			puts "width: #{width}"
-			puts "height: #{height}"
-			puts "maxval: #{maxval}"
-
+		def write(filename)
 			result = Array(UInt8 | UInt16).new
-			0.upto(size-1) do |i|
-				result << @data[i] + other.data[i]
+			if @maxval > 255 # if maxval > 255, each color is encoded on 2 bytes
+				@data.each do |word|
+					result << (word.bit(4) + word.bit(5)*2 + word.bit(6)*4 + word.bit(7)*8).to_u8
+					result << (word.bit(0) + word.bit(1)*2 + word.bit(2)*4 + word.bit(3)*8).to_u8
+				end
+			else
+				result = @data
 			end
-			return PNM::PPM.new(width, height, maxval, result)
+
+			File.open(filename, "wb") do |file|
+				file.write_byte('P'.ord.to_u8)
+				file.write_byte('6'.ord.to_u8)
+				file.write_byte(0x0a.to_u8)
+				width.to_s.each_char do |char|
+					file.write_byte(char.ord.to_u8)
+				end
+				file.write_byte(0x0a.to_u8)
+				height.to_s.each_char do |char|
+					file.write_byte(char.ord.to_u8)
+				end
+				file.write_byte(0x0a.to_u8)
+				maxval.to_s.each_char do |char|
+					file.write_byte(char.ord.to_u8)
+				end
+				file.write_byte(0x0a.to_u8)
+
+
+				result.each do |byte|
+					file.write_byte(byte.to_u8)
+				end
+			end
 		end
 	end
 end
