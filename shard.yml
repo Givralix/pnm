@@ -1,0 +1,9 @@
+name: pnm
+version: 0.1.0
+
+authors:
+  - Givralix <amelie.lulia68@gmail.com>
+
+crystal: 0.20.5
+
+license: MIT
