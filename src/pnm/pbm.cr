@@ -115,5 +115,65 @@ module PNM
 				file.write(@data)
 			end
 		end
+		
+		def +(other : self)
+			result = Slice(UInt8).new(width*height/8)
+			
+			0.upto(result.size-1) do |i|
+				byte = @data[i].to_u + other.data[i].to_u
+				if byte > 255
+					result[i] = 255_u8
+				else
+					result[i] = byte.to_u8
+				end
+			end
+			PNM::PBM.new(width, height, result)
+		end
+
+		def -(other : self)
+			result = Slice(UInt8).new(width*height/8)
+			
+			0.upto(result.size-1) do |i|
+				byte = @data[i].to_i - other.data[i].to_i
+				if byte < 0
+					result[i] = 0_u8
+				else
+					result[i] = byte.to_u8
+				end
+			end
+			PNM::PBM.new(width, height, result)
+		end
+
+		def *(other : self)
+			result = Slice(UInt8).new(width*height/8)
+			
+			0.upto(result.size-1) do |i|
+				byte = (@data[i].to_u * other.data[i].to_u)/255
+				if byte > 255
+					result[i] = 255_u8
+				else
+					result[i] = byte.to_u8
+				end
+			end
+			PNM::PBM.new(width, height, result)
+		end
+
+		def /(other : self)
+			result = Slice(UInt8).new(width*height/8)
+			
+			0.upto(result.size-1) do |i|
+				if other.data[i] != 0
+					byte = @data[i].to_i * 255 / other.data[i].to_i
+					if byte > 255
+						result[i] = 255_u8
+					else
+						result[i] = byte.to_u8
+					end
+				else
+					result[i] = 255_u8
+				end
+			end
+			PNM::PBM.new(width, height, result)
+		end
 	end
 end
