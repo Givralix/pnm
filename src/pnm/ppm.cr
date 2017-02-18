@@ -161,5 +161,13 @@ module PNM
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
 		end
+		
+		def to_pbm(threshold)
+			self.to_pgm.to_pbm(threshold)
+		end
+
+		def to_pbm
+			self.to_pbm(128)
+		end
 	end
 end

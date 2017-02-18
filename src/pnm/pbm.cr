@@ -99,6 +99,32 @@ module PNM
 				end
 			end
 		end
+		
+		def to_pgm(maxval)
+			result = Array(UInt8).new
+			@data.each do |byte|
+				0.upto(7) do |bit|
+					new_byte = 0_u8
+					if byte.bit(7-bit) == 0
+						new_byte = maxval.to_u8
+					end
+					result << new_byte
+				end
+			end
+			PNM::PGM.new(@width, @height, maxval, result)
+		end
+		
+		def to_pgm
+			self.to_pgm(255)
+		end
+
+		def to_ppm(maxval)
+			self.to_pgm(maxval).to_ppm
+		end
+
+		def to_ppm
+			self.to_ppm(255)
+		end
 	end
 end
 
