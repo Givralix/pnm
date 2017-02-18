@@ -1,5 +1,29 @@
 module PNM
 	class PNM::PPM
+		def blue
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				result << @data[i*3+2]
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
+		end
+
+		def data
+			@data
+		end
+
+		def green
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				result << @data[i*3+1]
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
+		end
+
+		def height
+			@height
+		end
+
 		def initialize(data : Array(UInt8))
 			if PNM.datatype?(data) != "PPM"
 				raise Exception.new("Not a PPM file")
@@ -70,35 +94,52 @@ module PNM
 			@data = data
 		end
 
-		def width
-			@width
-		end
-
-		def height
-			@height
-		end
-
 		def maxval
 			@maxval
 		end
 
-		def data
-			@data
-		end
-
-		def maxval=(new_maxval)
+		def maxval=(new_maxval : Int32)
 			0.upto(@data.size-1) do |i|
 				@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
 			end
 			@maxval = new_maxval
 		end
 
+		def red
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				result << @data[i*3]
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
+		end
+
+		def to_pbm
+			self.to_pbm(128)
+		end
+		
+		def to_pbm(threshold : Int32)
+			self.to_pgm.to_pbm(threshold)
+		end
+
+		def to_pgm
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				byte = ((@data[i*3].to_u + @data[i*3+1] + @data[i*3+1])/3).to_u8
+				result << byte
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
+		end
+
 		# change maxval without changing the picture data
-		def unsafe_maxval=(new_maxval)
+		def unsafe_maxval=(new_maxval : Int32)
 			@maxval = new_maxval
 		end
 
-		def write(filename)
+		def width
+			@width
+		end
+
+		def write(filename : String)
 			result = @data
 
 			File.open(filename, "wb") do |file|
@@ -127,47 +168,6 @@ module PNM
 					file.write_byte(byte.to_u8)
 				end
 			end
-		end
-
-		def red
-			result = Array(UInt8).new
-			0.upto(@data.size/3-1) do |i|
-				result << @data[i*3]
-			end
-			PNM::PGM.new(@width, @height, @maxval, result)
-		end
-
-		def green
-			result = Array(UInt8).new
-			0.upto(@data.size/3-1) do |i|
-				result << @data[i*3+1]
-			end
-			PNM::PGM.new(@width, @height, @maxval, result)
-		end
-
-		def blue
-			result = Array(UInt8).new
-			0.upto(@data.size/3-1) do |i|
-				result << @data[i*3+2]
-			end
-			PNM::PGM.new(@width, @height, @maxval, result)
-		end
-
-		def to_pgm
-			result = Array(UInt8).new
-			0.upto(@data.size/3-1) do |i|
-				byte = ((@data[i*3].to_u + @data[i*3+1] + @data[i*3+1])/3).to_u8
-				result << byte
-			end
-			PNM::PGM.new(@width, @height, @maxval, result)
-		end
-		
-		def to_pbm(threshold)
-			self.to_pgm.to_pbm(threshold)
-		end
-
-		def to_pbm
-			self.to_pbm(128)
 		end
 	end
 end
