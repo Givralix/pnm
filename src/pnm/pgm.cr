@@ -48,7 +48,6 @@ module PNM
 						end
 						power = power - 1
 						0.upto(power) do |i|
-							puts data[current_byte+i].chr.to_i
 							@maxval += data[current_byte+i].chr.to_i * 10**(power-i)
 						end
 						current_byte += power
@@ -61,7 +60,6 @@ module PNM
 			end
 			
 			current_byte += 1
-			# if maxval > 255 then the values need to be stored in a Array(UInt16) array
 			@data = data[current_byte...data.size]
 		end
 
@@ -124,6 +122,35 @@ module PNM
 					file.write_byte(byte.to_u8)
 				end
 			end
+		end
+		
+		def to_ppm
+			result = Array(UInt8).new
+			@data.each do |byte|
+				1.upto(3) do
+					result << byte
+				end
+			end
+			PNM::PPM.new(@width, @height, @maxval, result)
+		end
+
+		def to_pbm(threshold)
+			result = Array(UInt8).new
+			0.upto(@data.size/8-1) do |i|
+				new_byte = 0_u8
+				0.upto(7) do |j|
+					new_byte = new_byte << 1
+					if @data[i*8+j] <= threshold
+						new_byte += 1
+					end
+				end
+				result << new_byte
+			end
+			PNM::PBM.new(@width, @height, result)
+		end
+
+		def to_pbm
+			self.to_pbm(@maxval/2)
 		end
 	end
 end

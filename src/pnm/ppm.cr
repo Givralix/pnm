@@ -88,7 +88,7 @@ module PNM
 
 		def maxval=(new_maxval)
 			0.upto(@data.size-1) do |i|
-				@data[i] = (@data[i].to_f * new_maxval.to_f / @maxval.to_f).to_u8
+				@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
 			end
 			@maxval = new_maxval
 		end
