@@ -145,6 +145,74 @@ module PNM
 				file.write(@data)
 			end
 		end
+
+		def +(other : self)
+			result = Slice(UInt8).new(width*height)
+
+			home = self.dup
+			
+			0.upto(result.size-1) do |i|
+				byte = home.data[i].to_u + other.data[i].to_u
+				if byte > maxval
+					result[i] = maxval.to_u8
+				else
+					result[i] = byte.to_u8
+				end
+			end
+			PNM::PGM.new(width, height, maxval, result)
+		end
+
+		def -(other : self)
+			result = Slice(UInt8).new(width*height)
+
+			home = self.dup
+			
+			0.upto(result.size-1) do |i|
+				byte = home.data[i].to_i - other.data[i].to_i
+				if byte < 0
+					result[i] = 0_u8
+				else
+					result[i] = byte.to_u8
+				end
+			end
+			PNM::PGM.new(width, height, maxval, result)
+		end
+
+		def *(other : self)
+			result = Slice(UInt8).new(width*height)
+
+			home = self.dup
+			
+			0.upto(result.size-1) do |i|
+				byte = (home.data[i].to_u * other.data[i].to_u)/maxval
+				if byte > maxval
+					result[i] = maxval.to_u8
+				else
+					result[i] = byte.to_u8
+				end
+			end
+			PNM::PGM.new(width, height, maxval, result)
+		end
+
+		def /(other : self)
+			result = Slice(UInt8).new(width*height)
+
+			home = self.dup
+			
+			0.upto(result.size-1) do |i|
+				if other.data[i] != 0
+					byte = home.data[i].to_i * maxval / other.data[i].to_i
+					if byte > maxval
+						result[i] = maxval.to_u8
+					else
+						result[i] = byte.to_u8
+					end
+				else
+					result[i] = maxval.to_u8
+				end
+			end
+			PNM::PGM.new(width, height, maxval, result)
+		end
 	end
 end
 
