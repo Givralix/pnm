@@ -126,11 +126,6 @@ module PNM
 			PNM::PGM.new(@width, @height, @maxval, result)
 		end
 
-		# change maxval without changing the picture data
-		def unsafe_maxval=(new_maxval : Int32)
-			@maxval = new_maxval
-		end
-
 		def width
 			@width
 		end
