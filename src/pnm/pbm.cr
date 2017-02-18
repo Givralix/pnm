@@ -72,7 +72,7 @@ module PNM
 					if @data[i].bit(7-bit) == 0
 						new_byte = maxval.to_u8
 					end
-					result[i+bit] = new_byte
+					result[i*8+bit] = new_byte
 				end
 			end
 			PNM::PGM.new(@width, @height, maxval, result)
@@ -117,5 +117,3 @@ module PNM
 		end
 	end
 end
-
-

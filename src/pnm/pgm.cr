@@ -123,7 +123,7 @@ module PNM
 			File.open(filename, "wb") do |file|
 				# magic number (P6 for PPM)
 				file.write_byte('P'.ord.to_u8)
-				file.write_byte('6'.ord.to_u8)
+				file.write_byte('5'.ord.to_u8)
 				file.write_byte(0x0a.to_u8)
 				# width
 				width.to_s.each_char do |char|
