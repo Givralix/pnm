@@ -62,23 +62,10 @@ module PNM
 			
 			current_byte += 1
 			# if maxval > 255 then the values need to be stored in a Array(UInt16) array
-			@data = Array(UInt16 | UInt8).new
-			if @maxval > 255
-				#current_byte += 1
-				while current_byte < data.size
-					@data << data[current_byte].to_u16 + data[current_byte+1].to_u16
-					current_byte += 2
-				end
-			else
-				#current_byte += 1
-				while current_byte < data.size
-					@data << data[current_byte]
-					current_byte += 1
-				end
-			end
+			@data = data[current_byte...data.size]
 		end
 
-		def initialize(width : Int32, height : Int32, maxval : Int32, data : Array(UInt8 | UInt16))
+		def initialize(width : Int32, height : Int32, maxval : Int32, data : Array(UInt8))
 			@width = width
 			@height = height
 			@maxval = maxval
@@ -102,28 +89,14 @@ module PNM
 		end
 
 		def maxval=(new_maxval)
-			if new_maxval < 255
-				0.upto(@data.size-1) do |i|
-					@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
-				end
-			else
-				0.upto(@data.size-1) do |i|
-					@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u16
-				end
+			0.upto(@data.size-1) do |i|
+				@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
 			end
 			@maxval = new_maxval
 		end
 
 		def write(filename)
-			result = Array(UInt8 | UInt16).new
-			if @maxval > 255 # if maxval > 255, each color is encoded on 2 bytes
-				@data.each do |word|
-					result << (word.bit(4) + word.bit(5)*2 + word.bit(6)*4 + word.bit(7)*8).to_u8
-					result << (word.bit(0) + word.bit(1)*2 + word.bit(2)*4 + word.bit(3)*8).to_u8
-				end
-			else
-				result = @data
-			end
+			result = @data
 
 			File.open(filename, "wb") do |file|
 				# magic number (P5 for PGM)

@@ -48,7 +48,6 @@ module PNM
 						end
 						power = power - 1
 						0.upto(power) do |i|
-							puts data[current_byte+i].chr.to_i
 							@maxval += data[current_byte+i].chr.to_i * 10**(power-i)
 						end
 						current_byte += power
@@ -61,24 +60,10 @@ module PNM
 			end
 			
 			current_byte += 1
-			# if maxval > 255 then the values need to be stored in a Array(UInt16) array
-			@data = Array(UInt16 | UInt8).new
-			if @maxval > 255
-				#current_byte += 1
-				while current_byte < data.size
-					@data << data[current_byte].to_u16 + data[current_byte+1].to_u16
-					current_byte += 2
-				end
-			else
-				#current_byte += 1
-				while current_byte < data.size
-					@data << data[current_byte]
-					current_byte += 1
-				end
-			end
+			@data = data[current_byte...data.size]
 		end
 
-		def initialize(width : Int32, height : Int32, maxval : Int32, data : Array(UInt8 | UInt16))
+		def initialize(width : Int32, height : Int32, maxval : Int32, data : Array(UInt8))
 			@width = width
 			@height = height
 			@maxval = maxval
@@ -102,28 +87,19 @@ module PNM
 		end
 
 		def maxval=(new_maxval)
-			if new_maxval < 255
-				0.upto(@data.size-1) do |i|
-					@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
-				end
-			else
-				0.upto(@data.size-1) do |i|
-					@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u16
-				end
+			0.upto(@data.size-1) do |i|
+				@data[i] = (@data[i].to_f * new_maxval.to_f / @maxval.to_f).to_u8
 			end
 			@maxval = new_maxval
 		end
 
+		# change maxval without changing the picture data
+		def unsafe_maxval=(new_maxval)
+			@maxval = new_maxval
+		end
+
 		def write(filename)
-			result = Array(UInt8 | UInt16).new
-			if @maxval > 255 # if maxval > 255, each color is encoded on 2 bytes
-				@data.each do |word|
-					result << (word.bit(4) + word.bit(5)*2 + word.bit(6)*4 + word.bit(7)*8).to_u8
-					result << (word.bit(0) + word.bit(1)*2 + word.bit(2)*4 + word.bit(3)*8).to_u8
-				end
-			else
-				result = @data
-			end
+			result = @data
 
 			File.open(filename, "wb") do |file|
 				# magic number (P6 for PPM)
@@ -151,6 +127,39 @@ module PNM
 					file.write_byte(byte.to_u8)
 				end
 			end
+		end
+
+		def red
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				result << @data[i*3]
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
+		end
+
+		def green
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				result << @data[i*3+1]
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
+		end
+
+		def blue
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				result << @data[i*3+2]
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
+		end
+
+		def to_pgm
+			result = Array(UInt8).new
+			0.upto(@data.size/3-1) do |i|
+				byte = ((@data[i*3].to_u + @data[i*3+1] + @data[i*3+1])/3).to_u8
+				result << byte
+			end
+			PNM::PGM.new(@width, @height, @maxval, result)
 		end
 	end
 end
