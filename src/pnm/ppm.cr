@@ -1,9 +1,9 @@
 module PNM
 	class PNM::PPM
 		def blue
-			result = Array(UInt8).new
+			result = Slice(UInt8).new(@data.size/3)
 			0.upto(@data.size/3-1) do |i|
-				result << @data[i*3+2]
+				result[i] = @data[i*3+2]
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
 		end
@@ -13,9 +13,9 @@ module PNM
 		end
 
 		def green
-			result = Array(UInt8).new
+			result = Slice(UInt8).new(@data.size/3)
 			0.upto(@data.size/3-1) do |i|
-				result << @data[i*3+1]
+				result[i] = @data[i*3+1]
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
 		end
@@ -24,7 +24,7 @@ module PNM
 			@height
 		end
 
-		def initialize(data : Array(UInt8))
+		def initialize(data : Slice(UInt8))
 			if PNM.datatype?(data) != "PPM"
 				raise Exception.new("Not a PPM file")
 			end
@@ -84,14 +84,10 @@ module PNM
 			end
 			
 			current_byte += 1
-			@data = data[current_byte...data.size]
+			@data = data[current_byte, data.size-current_byte]
 		end
 
-		def initialize(width : Int32, height : Int32, maxval : Int32, data : Array(UInt8))
-			@width = width
-			@height = height
-			@maxval = maxval
-			@data = data
+		def initialize(@width : Int32, @height : Int32, @maxval : Int32, @data : Slice(UInt8))
 		end
 
 		def maxval
@@ -106,9 +102,9 @@ module PNM
 		end
 
 		def red
-			result = Array(UInt8).new
+			result = Slice(UInt8).new(@data.size/3)
 			0.upto(@data.size/3-1) do |i|
-				result << @data[i*3]
+				result[i] = @data[i*3]
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
 		end
@@ -122,10 +118,10 @@ module PNM
 		end
 
 		def to_pgm
-			result = Array(UInt8).new
+			result = Slice(UInt8).new(@data.size/3)
 			0.upto(@data.size/3-1) do |i|
 				byte = ((@data[i*3].to_u + @data[i*3+1] + @data[i*3+1])/3).to_u8
-				result << byte
+				result[i] = byte
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
 		end
@@ -164,9 +160,7 @@ module PNM
 				file.write_byte(0x0a.to_u8)
 
 				# picture data
-				result.each do |byte|
-					file.write_byte(byte.to_u8)
-				end
+				file.write(result)
 			end
 		end
 	end

@@ -8,7 +8,7 @@ module PNM
 			@height
 		end
 
-		def initialize(data : Array(UInt8))
+		def initialize(data : Slice(UInt8))
 			if PNM.datatype?(data) != "PBM"
 				raise Exception.new("Not a PBM file")
 			end
@@ -57,28 +57,22 @@ module PNM
 			end
 			
 			current_byte += 1
-			@data = Array(UInt8).new
-			while current_byte < data.size
-				@data << data[current_byte]
-				current_byte += 1
-			end
+			@data = data[current_byte, data.size-current_byte]
+
 		end
 
-		def initialize(width : Int32, height : Int32, data : Array(UInt8))
-			@width = width
-			@height = height
-			@data = data
+		def initialize(@width : Int32, @height : Int32, @data : Slice(UInt8))
 		end
 		
 		def to_pgm(maxval : Int32)
-			result = Array(UInt8).new
-			@data.each do |byte|
+			result = Slice(UInt8).new(@data.size*8)
+			0.upto(@data.size-1) do |i|
 				0.upto(7) do |bit|
 					new_byte = 0_u8
-					if byte.bit(7-bit) == 0
+					if @data[i].bit(7-bit) == 0
 						new_byte = maxval.to_u8
 					end
-					result << new_byte
+					result[i+bit] = new_byte
 				end
 			end
 			PNM::PGM.new(@width, @height, maxval, result)
@@ -101,8 +95,6 @@ module PNM
 		end
 
 		def write(filename : String)
-			result = @data.dup
-
 			File.open(filename, "wb") do |file|
 				# magic number (P4 for PBM)
 				file.write_byte('P'.ord.to_u8)
@@ -120,9 +112,7 @@ module PNM
 				file.write_byte(0x0a.to_u8)
 
 				# picture data
-				result.each do |byte|
-					file.write_byte(byte.to_u8)
-				end
+				file.write(@data)
 			end
 		end
 	end
