@@ -82,14 +82,14 @@ module PNM
 			@maxval
 		end
 
-		def maxval=(new_maxval)
+		def maxval=(new_maxval : Int32)
 			0.upto(@data.size-1) do |i|
 				@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
 			end
 			@maxval = new_maxval
 		end
 
-		def to_pbm(threshold)
+		def to_pbm(threshold : Int32)
 			result = Array(UInt8).new
 			0.upto(@data.size/8-1) do |i|
 				new_byte = 0_u8
@@ -122,7 +122,7 @@ module PNM
 			@width
 		end
 
-		def write(filename)
+		def write(filename : String)
 			result = @data
 
 			File.open(filename, "wb") do |file|
