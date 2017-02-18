@@ -1,5 +1,13 @@
 module PNM
 	class PNM::PGM
+		def data
+			@data
+		end
+
+		def height
+			@height
+		end
+
 		def initialize(data : Array(UInt8))
 			if PNM.datatype?(data) != "PGM"
 				raise Exception.new("Not a PGM file")
@@ -70,20 +78,8 @@ module PNM
 			@data = data
 		end
 
-		def width
-			@width
-		end
-
-		def height
-			@height
-		end
-
 		def maxval
 			@maxval
-		end
-
-		def data
-			@data
 		end
 
 		def maxval=(new_maxval)
@@ -91,6 +87,39 @@ module PNM
 				@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
 			end
 			@maxval = new_maxval
+		end
+
+		def to_pbm(threshold)
+			result = Array(UInt8).new
+			0.upto(@data.size/8-1) do |i|
+				new_byte = 0_u8
+				0.upto(7) do |j|
+					new_byte = new_byte << 1
+					if @data[i*8+j] <= threshold
+						new_byte += 1
+					end
+				end
+				result << new_byte
+			end
+			PNM::PBM.new(@width, @height, result)
+		end
+
+		def to_pbm
+			self.to_pbm(@maxval/2)
+		end
+		
+		def to_ppm
+			result = Array(UInt8).new
+			@data.each do |byte|
+				1.upto(3) do
+					result << byte
+				end
+			end
+			PNM::PPM.new(@width, @height, @maxval, result)
+		end
+
+		def width
+			@width
 		end
 
 		def write(filename)
@@ -122,35 +151,6 @@ module PNM
 					file.write_byte(byte.to_u8)
 				end
 			end
-		end
-		
-		def to_ppm
-			result = Array(UInt8).new
-			@data.each do |byte|
-				1.upto(3) do
-					result << byte
-				end
-			end
-			PNM::PPM.new(@width, @height, @maxval, result)
-		end
-
-		def to_pbm(threshold)
-			result = Array(UInt8).new
-			0.upto(@data.size/8-1) do |i|
-				new_byte = 0_u8
-				0.upto(7) do |j|
-					new_byte = new_byte << 1
-					if @data[i*8+j] <= threshold
-						new_byte += 1
-					end
-				end
-				result << new_byte
-			end
-			PNM::PBM.new(@width, @height, result)
-		end
-
-		def to_pbm
-			self.to_pbm(@maxval/2)
 		end
 	end
 end

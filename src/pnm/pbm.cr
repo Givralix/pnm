@@ -1,5 +1,13 @@
 module PNM
 	class PNM::PBM
+		def data
+			@data
+		end
+
+		def height
+			@height
+		end
+
 		def initialize(data : Array(UInt8))
 			if PNM.datatype?(data) != "PBM"
 				raise Exception.new("Not a PBM file")
@@ -61,20 +69,38 @@ module PNM
 			@height = height
 			@data = data
 		end
+		
+		def to_pgm(maxval : Int32)
+			result = Array(UInt8).new
+			@data.each do |byte|
+				0.upto(7) do |bit|
+					new_byte = 0_u8
+					if byte.bit(7-bit) == 0
+						new_byte = maxval.to_u8
+					end
+					result << new_byte
+				end
+			end
+			PNM::PGM.new(@width, @height, maxval, result)
+		end
+		
+		def to_pgm
+			self.to_pgm(255)
+		end
+
+		def to_ppm(maxval : Int32)
+			self.to_pgm(maxval).to_ppm
+		end
+
+		def to_ppm
+			self.to_ppm(255)
+		end
 
 		def width
 			@width
 		end
 
-		def height
-			@height
-		end
-
-		def data
-			@data
-		end
-
-		def write(filename)
+		def write(filename : String)
 			result = @data.dup
 
 			File.open(filename, "wb") do |file|
@@ -98,32 +124,6 @@ module PNM
 					file.write_byte(byte.to_u8)
 				end
 			end
-		end
-		
-		def to_pgm(maxval)
-			result = Array(UInt8).new
-			@data.each do |byte|
-				0.upto(7) do |bit|
-					new_byte = 0_u8
-					if byte.bit(7-bit) == 0
-						new_byte = maxval.to_u8
-					end
-					result << new_byte
-				end
-			end
-			PNM::PGM.new(@width, @height, maxval, result)
-		end
-		
-		def to_pgm
-			self.to_pgm(255)
-		end
-
-		def to_ppm(maxval)
-			self.to_pgm(maxval).to_ppm
-		end
-
-		def to_ppm
-			self.to_ppm(255)
 		end
 	end
 end
