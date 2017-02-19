@@ -2,7 +2,7 @@ module PNM
 	class PNM::PPM
 		def blue
 			result = Slice(UInt8).new(@data.size/3)
-			0.upto(@data.size/3-1) do |i|
+			result.each_index do |i|
 				result[i] = @data[i*3+2]
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
@@ -14,7 +14,7 @@ module PNM
 
 		def green
 			result = Slice(UInt8).new(@data.size/3)
-			0.upto(@data.size/3-1) do |i|
+			result.each_index do |i|
 				result[i] = @data[i*3+1]
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
@@ -95,7 +95,7 @@ module PNM
 		end
 
 		def maxval=(new_maxval : Int32)
-			0.upto(@data.size-1) do |i|
+			@data.each_index do |i|
 				@data[i] = (@data[i].to_u * new_maxval / @maxval).to_u8
 			end
 			@maxval = new_maxval
@@ -103,23 +103,23 @@ module PNM
 
 		def red
 			result = Slice(UInt8).new(@data.size/3)
-			0.upto(@data.size/3-1) do |i|
+			result.each_index do |i|
 				result[i] = @data[i*3]
 			end
 			PNM::PGM.new(@width, @height, @maxval, result)
 		end
 
 		def to_pbm
-			self.to_pbm(128)
+			to_pbm(128)
 		end
 		
 		def to_pbm(threshold : Int32)
-			self.to_pgm.to_pbm(threshold)
+			to_pgm.to_pbm(threshold)
 		end
 
 		def to_pgm
 			result = Slice(UInt8).new(@data.size/3)
-			0.upto(@data.size/3-1) do |i|
+			result.each_index do |i|
 				byte = ((@data[i*3].to_u + @data[i*3+1] + @data[i*3+1])/3).to_u8
 				result[i] = byte
 			end
@@ -162,9 +162,9 @@ module PNM
 		def +(other : self)
 			result = Slice(UInt8).new(width*height*3)
 
-			home = self.dup
+			home = dup
 			
-			0.upto(result.size-1) do |i|
+			result.each_index do |i|
 				byte = home.data[i].to_u + other.data[i].to_u
 				if byte > maxval
 					result[i] = maxval.to_u8
@@ -178,9 +178,9 @@ module PNM
 		def -(other : self)
 			result = Slice(UInt8).new(width*height*3)
 
-			home = self.dup
+			home = dup
 			
-			0.upto(result.size-1) do |i|
+			result.each_index do |i|
 				byte = home.data[i].to_i - other.data[i].to_i
 				if byte < 0
 					result[i] = 0_u8
@@ -194,9 +194,9 @@ module PNM
 		def *(other : self)
 			result = Slice(UInt8).new(width*height*3)
 
-			home = self.dup
+			home = dup
 			
-			0.upto(result.size-1) do |i|
+			result.each_index do |i|
 				byte = (home.data[i].to_u * other.data[i].to_u)/maxval
 				if byte > maxval
 					result[i] = maxval.to_u8
@@ -210,9 +210,9 @@ module PNM
 		def /(other : self)
 			result = Slice(UInt8).new(width*height*3)
 
-			home = self.dup
+			home = dup
 			
-			0.upto(result.size-1) do |i|
+			result.each_index do |i|
 				if other.data[i] != 0
 					byte = home.data[i].to_i * maxval / other.data[i].to_i
 					if byte > maxval
@@ -241,6 +241,25 @@ module PNM
 			@height = new_height
 			@data = result
 			nil
+		end
+
+		# takes 3 PGM objects as red, green and blue channels and outputs 1 PPM object
+		def initialize(red : PNM::PGM, green : PNM::PGM, blue : PNM::PGM)
+			result = Slice(UInt8).new(red.data.size*3)
+
+			result.each_index do |i|
+				if i % 3 == 0
+					result[i] = red.data[i/3]
+				elsif i % 3 == 1
+					result[i] = green.data[i/3]
+				else
+					result[i] = blue.data[i/3]
+				end
+			end
+			@width = red.width
+			@height = red.height
+			@maxval = red.maxval
+			@data = result
 		end
 	end
 end
