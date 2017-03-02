@@ -175,5 +175,14 @@ module PNM
 			end
 			PNM::PBM.new(width, height, result)
 		end
+
+		def invert()
+			result = Slice(UInt8).new(width*height/8)
+
+			0.upto(result.size-1) do |i|
+				result[i] = 255_u8 - @data[i]
+			end
+			PNM::PBM.new(width, height, result)
+		end
 	end
 end
