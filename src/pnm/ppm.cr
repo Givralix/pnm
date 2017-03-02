@@ -261,5 +261,14 @@ module PNM
 			@maxval = red.maxval
 			@data = result
 		end
+		
+		def invert()
+			result = Slice(UInt8).new(@width*@height*3)
+
+			0.upto(result.size-1) do |i|
+				result[i] = 255_u8 - @data[i]
+			end
+			PNM::PPM.new(@width, @height, @maxval, result)
+		end
 	end
 end
